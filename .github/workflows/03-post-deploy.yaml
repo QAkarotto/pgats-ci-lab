@@ -20,6 +20,8 @@ jobs:
   
     #maquina que o job vai executar
     runs-on: ubuntu-latest
+    
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     # pasos do scripts de build
     steps:
@@ -46,3 +48,9 @@ jobs:
       # executar os testes e2e
       - name: Executando Testes E2E
         run: yarn run e2e
+        
+      - uses: action/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: relatorio
+          path: ./playwright-report
