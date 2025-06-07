@@ -1,0 +1,87 @@
+# - workflow - n4
+#   - jobs - inspecao (bloco 1)
+#     - steps - instalar dependencies
+#     - steps - executar script de lint
+#   - jobs - unidade (bloco 1)
+#     - steps - instalar dependencies
+#     - steps - executar script de testes de unidade
+#   - jobs - e2e-tests (bloco 2)
+#     - steps - instalar dependencies
+#     - steps - instalar subir app localmente
+#     - steps - instalar browsers
+#     - steps - run e2e scripts
+#     - steps - publish reports
+#   - jobs - deploy (bloco 3)
+#     - steps - instalar depedendencies
+#     - steps - gerar artefatos de aplicacao
+#     - steps - publish app in env
+
+name: 'Execução Integrada'
+
+on:
+  workflow_dispatch:
+
+jobs:
+  inspecao:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installing dependencies
+        run: yarn
+
+      - name: Validating code standardization
+        run: yarn lint
+
+  unit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installing dependencies
+        run: yarn
+
+      - name: Running unit tests
+        run: yarn test
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      # clone do projeto. Comando pra usar uma action
+      - uses: actions/checkout@v4
+
+      # instalacao do node
+      # - uses: actions/setup-node@v4
+      #   with:
+      #     node-version: latest
+
+      # instalacao das dependencies
+      - name: Instalando dependências
+        # ou yarn install
+        run: yarn
+
+      # instalacao do Playwright
+      - name: Instalando Playwright
+        run: yarn playwright install
+
+      # executando testes e2e
+      - name: Executando testes e2e
+        run: yarn run e2e
+
+      - name: Publishing results in pull request
+        uses: dorny/test-reporter@v1
+        if: ${{ !cancelled() }}
+        with:
+          name: e2e-report
+          path: './test-results/results.xml'
+          reporter: java-junit
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy simulation
+        run: echo "simulating deploy message"
